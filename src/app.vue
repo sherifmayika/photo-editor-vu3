@@ -2,18 +2,18 @@
   <div class="app">
     <header class="header">
       <span class="title">Photo Editor</span>
-      <navbar
+      <Navbar
         :data="data"
         @change="change"
       />
     </header>
     <main class="main">
-      <editor
+      <Editor
         v-if="data.loaded"
         ref="editor"
         :data="data"
       />
-      <loader
+      <Loader
         v-else
         ref="loader"
         :data="data"
@@ -21,51 +21,64 @@
     </main>
   </div>
 </template>
-
 <script>
+import VueCropper from 'vue-cropperjs';
+import 'cropperjs/dist/cropper.css';
+
+import './styles/index.css';
+import { ref } from 'vue';
+import Navbar from './components/Navbar.vue';
+import Editor from './components/Editor.vue';
+import Loader from './components/Loader.vue';
+
 export default {
-  data() {
-    return {
-      data: {
-        cropped: false,
-        cropping: false,
-        loaded: false,
-        name: '',
-        previousUrl: '',
-        type: '',
-        url: '',
-      },
-    };
+  components: {
+    Navbar,
+    Editor,
+    Loader,
   },
+  setup() {
+    const data = ref({
+      cropped: false,
+      cropping: false,
+      loaded: false,
+      name: '',
+      previousUrl: '',
+      type: '',
+      url: '',
+    });
 
-  methods: {
-    change(action) {
-      const { editor } = this.$refs;
+    const editor = ref(null);
+    const loader = ref(null);
 
+    const change = (action) => {
       switch (action) {
         case 'crop':
-          editor.crop();
+          editor.value.crop();
           break;
-
         case 'clear':
-          editor.clear();
+          editor.value.clear();
           break;
-
         case 'restore':
-          editor.restore();
+          editor.value.restore();
           break;
-
         case 'remove':
-          editor.reset();
+          editor.value.reset();
           break;
-
         default:
+          break;
       }
-    },
+    };
+
+    return {
+      data,
+      editor,
+      loader,
+      change,
+    };
   },
 };
 </script>
-
 <style scoped>
 .app {
   bottom: 0;
