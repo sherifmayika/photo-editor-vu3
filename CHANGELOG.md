@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0 (June 26, 2024)
+
+- Support vue js 3 and vite (#40)
+  
 ## 1.2.0 (Apr 26, 2021)
 
 - Support to paste image file or URL (#40).
