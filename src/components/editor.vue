@@ -76,273 +76,101 @@
     </div>
   </div>
 </template>
-
 <script>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import Cropper from 'cropperjs';
 
 export default {
   name: 'Editor',
-
   props: {
     data: {
       type: Object,
       default: () => ({}),
     },
   },
+  setup(props) {
+    const canvasData = ref(null);
+    const cropBoxData = ref(null);
+    const croppedData = ref(null);
+    const cropper = ref(null);
+    const image = ref(null);
 
-  data() {
-    return {
-      canvasData: null,
-      cropBoxData: null,
-      croppedData: null,
-      cropper: null,
+    const update = (newData) => {
+      Object.assign(props.data, newData);
     };
-  },
 
-  mounted() {
-    window.addEventListener('keydown', (this.onKeydown = this.keydown.bind(this)));
-  },
+    const start = () => {
+      if (props.data.cropped || cropper.value) return;
 
-  beforeDestroy() {
-    window.removeEventListener('keydown', this.onKeydown);
-    this.stop();
-  },
-
-  methods: {
-    click({ target }) {
-      const { cropper } = this;
-      const action = target.getAttribute('data-action') || target.parentElement.getAttribute('data-action');
-
-      switch (action) {
-        case 'move':
-        case 'crop':
-          cropper.setDragMode(action);
-          break;
-
-        case 'zoom-in':
-          cropper.zoom(0.1);
-          break;
-
-        case 'zoom-out':
-          cropper.zoom(-0.1);
-          break;
-
-        case 'rotate-left':
-          cropper.rotate(-90);
-          break;
-
-        case 'rotate-right':
-          cropper.rotate(90);
-          break;
-
-        case 'flip-horizontal':
-          cropper.scaleX(-cropper.getData().scaleX || -1);
-          break;
-
-        case 'flip-vertical':
-          cropper.scaleY(-cropper.getData().scaleY || -1);
-          break;
-
-        default:
-      }
-    },
-
-    keydown(e) {
-      switch (e.key) {
-        // Undo crop
-        case 'z':
-          if (e.ctrlKey) {
-            e.preventDefault();
-            this.restore();
-          }
-
-          break;
-
-          // Delete the image
-        case 'Delete':
-          this.reset();
-          break;
-
-        default:
-      }
-
-      const { cropper } = this;
-
-      if (!cropper) {
-        return;
-      }
-
-      switch (e.key) {
-        // Crop the image
-        case 'Enter':
-          this.crop();
-          break;
-
-          // Clear crop area
-        case 'Escape':
-          this.clear();
-          break;
-
-          // Move to the left
-        case 'ArrowLeft':
-          e.preventDefault();
-          cropper.move(-1, 0);
-          break;
-
-          // Move to the top
-        case 'ArrowUp':
-          e.preventDefault();
-          cropper.move(0, -1);
-          break;
-
-          // Move to the right
-        case 'ArrowRight':
-          e.preventDefault();
-          cropper.move(1, 0);
-          break;
-
-          // Move to the bottom
-        case 'ArrowDown':
-          e.preventDefault();
-          cropper.move(0, 1);
-          break;
-
-          // Enter crop mode
-        case 'c':
-          cropper.setDragMode('crop');
-          break;
-
-          // Enter move mode
-        case 'm':
-          cropper.setDragMode('move');
-          break;
-
-          // Zoom in
-        case 'i':
-          cropper.zoom(0.1);
-          break;
-
-          // Zoom out
-        case 'o':
-          cropper.zoom(-0.1);
-          break;
-
-          // Rotate left
-        case 'l':
-          cropper.rotate(-90);
-          break;
-
-          // Rotate right
-        case 'r':
-          cropper.rotate(90);
-          break;
-
-          // Flip horizontal
-        case 'h':
-          cropper.scaleX(-cropper.getData().scaleX || -1);
-          break;
-
-          // Flip vertical
-        case 'v':
-          cropper.scaleY(-cropper.getData().scaleY || -1);
-          break;
-
-        default:
-      }
-    },
-
-    dblclick(e) {
-      if (e.target.className.indexOf('cropper-face') >= 0) {
-        e.preventDefault();
-        e.stopPropagation();
-        this.crop();
-      }
-    },
-
-    start() {
-      const { data } = this;
-
-      if (data.cropped || this.cropper) {
-        return;
-      }
-
-      this.cropper = new Cropper(this.$refs.image, {
+      cropper.value = new Cropper(image.value, {
         autoCrop: false,
         dragMode: 'move',
         background: false,
-
-        ready: () => {
-          if (this.croppedData) {
-            this.cropper
+        ready() {
+          if (croppedData.value) {
+            cropper.value
               .crop()
-              .setData(this.croppedData)
-              .setCanvasData(this.canvasData)
-              .setCropBoxData(this.cropBoxData);
+              .setData(croppedData.value)
+              .setCanvasData(canvasData.value)
+              .setCropBoxData(cropBoxData.value);
 
-            this.croppedData = null;
-            this.canvasData = null;
-            this.cropBoxData = null;
+            croppedData.value = null;
+            canvasData.value = null;
+            cropBoxData.value = null;
           }
         },
-
-        crop: ({ detail }) => {
-          if (detail.width > 0 && detail.height > 0 && !data.cropping) {
-            this.update({
-              cropping: true,
-            });
+        crop({ detail }) {
+          if (detail.width > 0 && detail.height > 0 && !props.data.cropping) {
+            update({ cropping: true });
           }
         },
       });
-    },
+    };
 
-    stop() {
-      if (this.cropper) {
-        this.cropper.destroy();
-        this.cropper = null;
+    const stop = () => {
+      if (cropper.value) {
+        cropper.value.destroy();
+        cropper.value = null;
       }
-    },
+    };
 
-    crop() {
-      const { cropper, data } = this;
-
-      if (data.cropping) {
-        this.croppedData = cropper.getData();
-        this.canvasData = cropper.getCanvasData();
-        this.cropBoxData = cropper.getCropBoxData();
-        this.update({
+    const crop = () => {
+      if (props.data.cropping) {
+        croppedData.value = cropper.value.getData();
+        canvasData.value = cropper.value.getCanvasData();
+        cropBoxData.value = cropper.value.getCropBoxData();
+        update({
           cropped: true,
           cropping: false,
-          previousUrl: data.url,
-          url: cropper.getCroppedCanvas(data.type === 'image/png' ? {} : {
+          previousUrl: props.data.url,
+          url: cropper.value.getCroppedCanvas(props.data.type === 'image/png' ? {} : {
             fillColor: '#fff',
-          }).toDataURL(data.type),
+          }).toDataURL(props.data.type),
         });
-        this.stop();
+        stop();
       }
-    },
+    };
 
-    clear() {
-      if (this.data.cropping) {
-        this.cropper.clear();
-        this.update({
-          cropping: false,
-        });
+    const clear = () => {
+      if (props.data.cropping) {
+        cropper.value.clear();
+        update({ cropping: false });
       }
-    },
+    };
 
-    restore() {
-      if (this.data.cropped) {
-        this.update({
+    const restore = () => {
+      if (props.data.cropped) {
+        update({
           cropped: false,
           previousUrl: '',
-          url: this.data.previousUrl,
+          url: props.data.previousUrl,
         });
       }
-    },
+    };
 
-    reset() {
-      this.stop();
-      this.update({
+    const reset = () => {
+      stop();
+      update({
         cropped: false,
         cropping: false,
         loaded: false,
@@ -351,15 +179,143 @@ export default {
         type: '',
         url: '',
       });
-    },
+    };
 
-    update(data) {
-      Object.assign(this.data, data);
-    },
+    const click = ({ target }) => {
+      const action = target.getAttribute('data-action') || target.parentElement.getAttribute('data-action');
+      switch (action) {
+        case 'move':
+        case 'crop':
+          cropper.value.setDragMode(action);
+          break;
+        case 'zoom-in':
+          cropper.value.zoom(0.1);
+          break;
+        case 'zoom-out':
+          cropper.value.zoom(-0.1);
+          break;
+        case 'rotate-left':
+          cropper.value.rotate(-90);
+          break;
+        case 'rotate-right':
+          cropper.value.rotate(90);
+          break;
+        case 'flip-horizontal':
+          cropper.value.scaleX(-cropper.value.getData().scaleX || -1);
+          break;
+        case 'flip-vertical':
+          cropper.value.scaleY(-cropper.value.getData().scaleY || -1);
+          break;
+        default:
+          break;
+      }
+    };
+
+    const keydown = (e) => {
+      switch (e.key) {
+        case 'z':
+          if (e.ctrlKey) {
+            e.preventDefault();
+            restore();
+          }
+          break;
+        case 'Delete':
+          reset();
+          break;
+        default:
+          break;
+      }
+
+      if (!cropper.value) return;
+
+      switch (e.key) {
+        case 'Enter':
+          crop();
+          break;
+        case 'Escape':
+          clear();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          cropper.value.move(-1, 0);
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          cropper.value.move(0, -1);
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          cropper.value.move(1, 0);
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          cropper.value.move(0, 1);
+          break;
+        case 'c':
+          cropper.value.setDragMode('crop');
+          break;
+        case 'm':
+          cropper.value.setDragMode('move');
+          break;
+        case 'i':
+          cropper.value.zoom(0.1);
+          break;
+        case 'o':
+          cropper.value.zoom(-0.1);
+          break;
+        case 'l':
+          cropper.value.rotate(-90);
+          break;
+        case 'r':
+          cropper.value.rotate(90);
+          break;
+        case 'h':
+          cropper.value.scaleX(-cropper.value.getData().scaleX || -1);
+          break;
+        case 'v':
+          cropper.value.scaleY(-cropper.value.getData().scaleY || -1);
+          break;
+        default:
+          break;
+      }
+    };
+
+    const dblclick = (e) => {
+      if (e.target.className.includes('cropper-face')) {
+        e.preventDefault();
+        e.stopPropagation();
+        crop();
+      }
+    };
+
+    onMounted(() => {
+      window.addEventListener('keydown', keydown);
+    });
+
+    onBeforeUnmount(() => {
+      window.removeEventListener('keydown', keydown);
+      stop();
+    });
+
+    return {
+      image,
+      click,
+      dblclick,
+      start,
+      stop,
+      crop,
+      clear,
+      restore,
+      reset,
+      update,
+      cropper,
+      canvasData,
+      cropBoxData,
+      croppedData,
+    };
   },
 };
 </script>
-
 <style scoped>
 .editor {
   height: 100%;
