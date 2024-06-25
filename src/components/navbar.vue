@@ -59,12 +59,14 @@
         href="https://github.com/fengyuanchen/photo-editor"
         title="View on GitHub"
       ><span class="fa fa-github" /></a>
+      
     </nav>
   </div>
 </template>
-
 <script>
-export default {
+import { ref, defineComponent } from 'vue';
+
+export default defineComponent({
   name: 'Navbar',
 
   props: {
@@ -74,24 +76,24 @@ export default {
     },
   },
 
-  data() {
-    return {
-      downloadable: typeof document.createElement('a').download !== 'undefined',
-    };
-  },
+  setup(props, { emit }) {
+    const downloadable = ref(typeof document.createElement('a').download !== 'undefined');
 
-  methods: {
-    click({ target }) {
+    const click = ({ target }) => {
       const action = target.getAttribute('data-action') || target.parentElement.getAttribute('data-action');
 
       if (action) {
-        this.$emit('change', action);
+        emit('change', action);
       }
-    },
-  },
-};
-</script>
+    };
 
+    return {
+      downloadable,
+      click,
+    };
+  },
+});
+</script>
 <style scoped>
 .navbar {
   float: right;
@@ -119,11 +121,11 @@ export default {
   }
 }
 
-.nav--success:hover {
+.nav__button--success:hover {
   background-color: #2ecc40;
 }
 
-.nav--danger:hover {
+.nav__button--danger:hover {
   background-color: #ff4136;
 }
 </style>
