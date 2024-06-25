@@ -13,13 +13,15 @@
           class="sr-only"
           type="file"
           accept="image/*"
+          @change="change"
         >
       </label>
     </p>
   </div>
 </template>
-
 <script>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+
 const URL = window.URL || window.webkitURL;
 const REGEXP_MIME_TYPE_IMAGES = /^image\/\w+$/;
 const REGEXP_URLS = /^(?:https?|data):/;
@@ -34,16 +36,10 @@ export default {
     },
   },
 
-  mounted() {
-    this.$el.ownerDocument.addEventListener('paste', (this.onPaste = this.paste.bind(this)));
-  },
+  setup(props) {
+    const loader = ref(null);
 
-  beforeDestroy() {
-    this.$el.ownerDocument.removeEventListener('paste', this.onPaste);
-  },
-
-  methods: {
-    read(file, event) {
+    const read = (file, event) => {
       return new Promise((resolve, reject) => {
         if (!file) {
           resolve();
@@ -65,44 +61,44 @@ export default {
           reject(new Error(`Please ${event ? event.type : 'choose'} an image file.`));
         }
       });
-    },
+    };
 
-    change({ target }) {
-      const { files } = target;
+    const change = (event) => {
+      const { files } = event.target;
 
       if (files && files.length > 0) {
-        this.read(files[0]).then((data) => {
-          target.value = '';
-          this.update(data);
+        read(files[0], event).then((data) => {
+          event.target.value = '';
+          update(data);
         }).catch((e) => {
-          target.value = '';
-          this.alert(e);
+          event.target.value = '';
+          alert(e);
         });
       }
-    },
+    };
 
-    dragover(e) {
-      e.preventDefault();
-    },
+    const dragover = (event) => {
+      event.preventDefault();
+    };
 
-    drop(e) {
-      const { files } = e.dataTransfer;
+    const drop = (event) => {
+      const { files } = event.dataTransfer;
 
-      e.preventDefault();
+      event.preventDefault();
 
       if (files && files.length > 0) {
-        this.read(files[0], e)
+        read(files[0], event)
           .then((data) => {
-            this.update(data);
+            update(data);
           })
-          .catch(this.alert);
+          .catch(alert);
       }
-    },
+    };
 
-    paste(e) {
-      const { items } = e.clipboardData || window.clipboardData;
+    const paste = (event) => {
+      const { items } = event.clipboardData || window.clipboardData;
 
-      e.preventDefault();
+      event.preventDefault();
 
       if (items && items.length > 0) {
         new Promise((resolve, reject) => {
@@ -144,24 +140,39 @@ export default {
             reject(error);
           }
         })
-          .then((blob) => this.read(blob, e).then((data) => {
-            this.update(data);
+          .then((blob) => read(blob, event).then((data) => {
+            update(data);
           }))
-          .catch(this.alert);
+          .catch(alert);
       }
-    },
+    };
 
-    alert(e) {
+    const alert = (e) => {
       window.alert(e && e.message ? e.message : e);
-    },
+    };
 
-    update(data) {
-      Object.assign(this.data, data);
-    },
+    const update = (data) => {
+      Object.assign(props.data, data);
+    };
+
+    onMounted(() => {
+      document.addEventListener('paste', paste);
+    });
+
+    onBeforeUnmount(() => {
+      document.removeEventListener('paste', paste);
+    });
+
+    return {
+      loader,
+      change,
+      dragover,
+      drop,
+      paste,
+    };
   },
 };
 </script>
-
 <style scoped>
 .loader {
   display: table;
@@ -187,4 +198,16 @@ export default {
     text-decoration: underline;
   }
 }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
 </style>
+
