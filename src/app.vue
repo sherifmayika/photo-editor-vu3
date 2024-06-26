@@ -23,7 +23,7 @@
 </template>
 <script>
 import VueCropper from 'vue-cropperjs';
-import 'cropperjs/dist/cropper.css';
+//import 'cropperjs/dist/cropper.css';
 
 import './styles/index.css';
 import { ref } from 'vue';
