@@ -1,15 +1,15 @@
 {
-  "name": "photo-editor vue 3",
+  "name": "photo-editor-vue3",
   "description": "A photo editing application based on the Cropper.js",
   "version": "2.0.0",
   "main": "index.html",
- "scripts": {
+  "scripts": {
     "dev": "vite",
     "build": "vite build"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sherifmayika/photo-editor-vu3.git"
+    "url": "https://github.com/sherifmayika/photo-editor-vue3.git"
   },
   "author": {
     "name": "Aladin",
@@ -17,11 +17,11 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sherifmayika/photo-editor-vu3/issues"
+    "url": "https://github.com/sherifmayika/photo-editor-vue3/issues"
   },
-  "homepage": "https://aladin.github.io/photo-editor",
-    "dependencies": {
-     "vue": "^3.0.4",
+  "homepage": "https://sherifmayika.github.io/photo-editor-vue3",
+  "dependencies": {
+    "vue": "^3.0.4",
     "vue-cropperjs": "../"
   },
   "devDependencies": {
