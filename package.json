@@ -1,8 +1,7 @@
 {
   "name": "photo-editor-vue3",
-  "description": "A photo editing application based on the Cropper.js",
+  "description": "A photo editing application based on the Cropper.js and vue 3",
   "version": "2.0.0",
-  "main": "index.html",
   "scripts": {
     "dev": "vite",
     "build": "vite build"
