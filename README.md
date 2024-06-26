@@ -1,6 +1,6 @@
 # Photo Editor vue3
 > A photo editing application based on the [Cropper.js](https://github.com/fengyuanchen/cropperjs).
-This is a port of - [Website](https://fengyuanchen.github.io/photo-editor).
+This is a port of - [photo-editor](https://fengyuanchen.github.io/photo-editor).
 > I have removed webpack, which is very laggy and added vue 3 and vite, removed many unwated files.
 ## Support
 
